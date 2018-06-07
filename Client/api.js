@@ -1,79 +1,85 @@
 currentWeekNumber = require('current-week-number');
 
+// verificar se existe algum setor contendo esse id
+function sector_exists(sector_id){
+  return false
+}
+
+// verificar se existe algum profile contendo esse id
+function profile_exists(profile_id){
+  return false
+}
+
+function get_month(date){
+  //var month = date.getMonth() + 1
+  //return month;
+  return false
+}
+
+function get_year(date){
+  //var year = date.getFullYear()
+  //return year;
+  return false
+}
+
+function get_schedule_duration(start_time, end_time){
+  // The diference between times is given in milliseconds. We are expecting hours,
+  //so wu divide by 3600000.0 that is the number of milliseconds in 1 hour
+  //var schedule_duration = (end_time - start_time)/3600000.0
+  //return schedule_duration
+  return false
+}
+
 module.exports = function api(options){
 
   this.add('role:api,path:create', function(msg,respond){
-
-    var date = new Date(msg.args.body.date)
-    var start_time = msg.args.body.start_time
-    var end_time = msg.args.body.end_time
-    var sector = msg.args.body.sector
-    var employee = msg.args.body.employee
-    var specialty = msg.args.body.specialty
     var id = msg.args.query.id
+    var date = new Date(msg.args.body.date)
+    var start_time = new Date(msg.args.body.start_time)
+    var end_time = new Date(msg.args.body.end_time)
+    var profile_id = msg.args.body.profile_id
+    var sector_id = msg.args.body.sector_id
 
-    var month = date.getMonth() + 1
-    var year = date.getYear() + 1900
-
-    // The diference between times is given in milliseconds. We are expecting hours,
-    //so wu divide by 3600000.0 that is the number of milliseconds in 1 hour
-    var amount_of_hours = (Date.parse(end_time) - Date.parse(start_time))/3600000.0
-
-    if(Date.parse(start_time) > Date.parse(end_time)){
+    if(start_time > end_time){
       this.act('role:schedule,cmd:create',{
       }, respond(null, {success:false, message: 'Horários de Inicio e Fim estão em comflito'}))
-    }else if(sector == null || (sector.length < 1)){
+    }else if(sector_id == null || sector_exists(sector_id)){
       this.act('role:schedule,cmd:create',{
       }, respond(null, {success:false, message: 'Setor não pode ser vazio'}))
-    }else if(employee == null || (employee.length < 1)){
+    }else if(profile_id == null || profile_exists(profile_id)){
       this.act('role:schedule,cmd:create',{
       }, respond(null, {success:false, message: 'Plantonista não pode ser vazio'}))
 
     }else{
       this.act('role:schedule,cmd:create',{
+        id:id
         date:date,
         start_time:start_time,
         end_time:end_time,
-        sector:sector,
-        employee:employee,
-        specialty:specialty,
-        amount_of_hours:amount_of_hours,
-        id:id,
-        month:month,
-        year:year
+        sector_id:sector_id,
+        profile_id:profile_id
       }, respond)
     }
   })
 
-  this.add('role:api,path:listSchedule', function(msg, respond){
-    this.act('role:schedule, cmd:listSchedule',{}, respond)
 
-  });
-
-  this.add('role:api,path:createScale', function(msg, respond){
-    var maximum_hours_month = msg.args.body.maximum_hours_month
-    var maximum_hours_week = msg.args.body.maximum_hours_week
-    var minimum_hours_month = msg.args.body.minimum_hours_month
-    var minimum_hours_week = msg.args.body.minimum_hours_week
-    var employee = msg.args.body.employee
-    var month = msg.args.body.month
-    var year = msg.args.body.year
+  this.add('role:api,path:createScheduleSettings', function(msg, respond){
     var id = msg.args.query.id
-    var amount_of_hours = 0
-    var schedule_list = []
+    var max_hours_month = msg.args.body.max_hours_month
+    var max_hours_week = msg.args.body.max_hours_week
+    var min_hours_month = msg.args.body.min_hours_month
+    var min_hours_week = msg.args.body.min_hours_week
+    var profile_id = msg.args.body.profile_id
 
-    this.act('role:schedule,cmd:createScale',{
-      maximum_hours_month:maximum_hours_month,
-      maximum_hours_week:maximum_hours_week,
-      minimum_hours_month:minimum_hours_month,
-      minimum_hours_week:minimum_hours_week,
-      employee:employee,
-      month:month,
-      year:year,
-      amount_of_hours:amount_of_hours,
-      id:id
+    this.act('role:schedule,cmd:createScheduleSettings',{
+      id:id,
+      max_hours_month:max_hours_month,
+      max_hours_week:max_hours_week,
+      min_hours_month:min_hours_month,
+      min_hours_week:min_hours_week,
+      profile_id:profile_id
     }, respond)
-});
+  });
 
     this.add('role:api,path:listDay', function (msg, respond) {
         var currentDate = new Date();
@@ -101,6 +107,11 @@ module.exports = function api(options){
         }, respond)
     });
 
+    this.add('role:api,path:listSchedule', function(msg, respond){
+      this.act('role:schedule, cmd:listSchedule',{}, respond)
+
+    });
+    
     this.add('role:api,path:listMonth', function (msg, respond) {
         var currentDate = new Date();
         var year = msg.args.query.year;
@@ -376,7 +387,7 @@ module.exports = function api(options){
                            fail: '/api/schedule/error'
                         }
                     },
-                    createScale: { POST:true,
+                    createScheduleSettings: { POST:true,
                                 auth: {
                                   strategy: 'jwt',
                                   fail: '/api/schedule/error',

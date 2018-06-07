@@ -4,21 +4,17 @@ module.exports = function(options){
     schedule.date = msg.date
     schedule.start_time = msg.start_time
     schedule.end_time = msg.end_time
-    schedule.sector = msg.sector
-    schedule.employee = msg.employee
-    schedule.specialty = msg.specialty
-    schedule.amount_of_hours = msg.amount_of_hours
-    schedule.month = msg.month
-    schedule.year = msg.year
+    schedule.sector_id = msg.sector_id
+    schedule.profile_id = msg.profile_id
 
-    schedule.list$({date:schedule.date, employee:schedule.employee}, function(err,list){
+    schedule.list$({date:schedule.date, profile_id:schedule.profile_id}, function(err,list){
       list.forEach(function(time){
-        console.log("entra no for each do horario")
-          if (Date.parse(schedule.start_time) >= Date.parse(time.start_time) && Date.parse(schedule.start_time) <= Date.parse(time.end_time)) {
+        // console.log("entra no for each do horario")
+          if (schedule.start_time >= time.start_time && schedule.start_time <= time.end_time) {
             respond(null, {success:false, message: 'Este funcionário possui uma escala em conflito com o horário selecionado'})
-          }else if (Date.parse(schedule.end_time) >= Date.parse(time.start_time) && Date.parse(schedule.end_time) <= Date.parse(time.end_time)) {
+          }else if (schedule.end_time >= time.start_time && schedule.end_time <= time.end_time) {
             respond(null, {success:false, message: 'Este funcionário possui uma escala em conflito com o horário selecionado'})
-          }else if(Date.parse(schedule.start_time) <= Date.parse(time.start_time) && Date.parse(schedule.end_time) >= Date.parse(time.end_time)){
+          }else if(schedule.start_time <= time.start_time && schedule.end_time >= time.end_time){
             respond(null, {success:false, message: 'Este funcionário possui uma escala em conflito com o horário selecionado'})
           }
       })
@@ -61,7 +57,7 @@ module.exports = function(options){
     scale.maximum_hours_week = msg.maximum_hours_week
     scale.minimum_hours_month = msg.minimum_hours_month
     scale.minimum_hours_week = msg.minimum_hours_week
-    scale.employee = msg.employee
+    scale.profile_id = msg.profile_id
     scale.month = msg.month
     scale.year = msg.year
     scale.id = msg.id
@@ -70,10 +66,10 @@ module.exports = function(options){
     scale.schedule_list = []
 
     var schedule = this.make('schedules');
-    schedule.list$( { employee: scale.employee } , function(error, list){
-      list.forEach(function(time){
+    schedule.list$( { profile_id: scale.profile_id } , function(error, list){
+      list.forEach(function(time{
         if(time.month.toString() == scale.month && time.year.toString() == scale.year){
-          scale.schedule_list.push(time)
+          scale.schedule_list.push(time
           console.log("LISTA:");
           console.log(scale.schedule_list);
           console.log("HORAS DO TIME:");
@@ -99,7 +95,7 @@ module.exports = function(options){
       respond(null, {success:false, message: 'A escala possui menos horas que o minimo estabelecido'})
     }
 
-    // scale.list$({month:scale.month, year:scale.year, employee:scale.employee}, function(err,list){
+    // scale.list$({month:scale.month, year:scale.year, profile_id:scale.profile_id}, function(err,list){
     //   list.forEach(function(s){
     //     respond(null, {success:false, message: 'Já existe uma escala para este mês'})
     //   })
