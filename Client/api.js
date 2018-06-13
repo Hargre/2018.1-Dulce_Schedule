@@ -44,7 +44,7 @@ module.exports = function api(options){
     }
     // validate sector id
     if (sector_id == null || sector_id == "") {
-      result.sector_id_error = 'O setor é obrigatório.';
+      result.sector_id_error = 'O setor é obrigatório';
       console.log(result.sector_id_error);
     } else if (Array.isArray(sector_id)) {
       result.multiple_sector_id_error = 'Só é permitido um setor';
@@ -52,19 +52,23 @@ module.exports = function api(options){
     }
     // validate profile id
     if (profile_id == null || profile_id == "") {
-      result.profile_id_error = 'O usuário é obrigatório.';
+      result.profile_id_error = 'O usuário é obrigatório';
       console.log(result.profile_id_error);
     } else if (Array.isArray(profile_id)) {
-      result.profile_id_array_error = 'Só é permitido um perfil de usuário.';
+      result.profile_id_array_error = 'Só é permitido um perfil de usuário';
       console.log(result.profile_id_array_error);
     }
     // validade interval between start time and end time
     if((end_time - start_time) < 0){
-      result.date_interval_error = 'O fim do horário deve ser maior que o início do horário.'
+      result.date_interval_error = 'O fim do horário deve ser maior que o início do horário';
       console.log(result.date_interval_error);
     }else if((end_time - start_time) == 0){
-      result.date_equals_error = 'O horário de início e de fim não podem ser iguais.'
-      console.log(result.date_interval_error);
+      result.date_equals_error = 'O horário de início e de fim não podem ser iguais';
+      console.log(result.date_equals_error)
+    }
+    if (get_schedule_duration(start_time, end_time) > 24){
+      result.schedule_bigger_than_limit_error = 'O horário deve ser de no máximo 1 dia';
+      console.log(result.schedule_bigger_than_limit_error)
     }
     // verify that an error has occurred
     if (Object.entries(result)[0]) {
@@ -88,18 +92,24 @@ module.exports = function api(options){
   this.add('role:api,path:createScheduleSettings', function(msg, respond){
     var max_hours_month = parseInt(msg.args.body.max_hours_month)
     var max_hours_week = parseInt(msg.args.body.max_hours_week)
+    var max_hours_day = parseInt(msg.args.body.max_hours_day)
     var min_hours_month = parseInt(msg.args.body.min_hours_month)
     var min_hours_week = parseInt(msg.args.body.min_hours_week)
+    var min_hours_day = parseInt(msg.args.body.min_hours_day)
+
     // Lista de ids de templates
     var templates = msg.args.body.templates
 
     result = {}
     // validar se ids de templates são validos
 
-    // 24*7 = 168
+    // 24h*7days = 168 (Week)
     var max_hours_in_a_week = 168;
-    // 24*31 = 744
+    // 24h*31day = 744 (Month)
     var max_hours_in_a_month = 744;
+    // 24h
+    var max_hours_in_a_day = 24;
+
 
     // Validações de horas máximas por mês
     if(isNaN(max_hours_month)){
@@ -124,6 +134,29 @@ module.exports = function api(options){
       result.week_limit_error = 'O máximo de horas por semana não pode ser maior ou igual a ' + max_hours_in_a_week;
       console.log(result.week_limit_error);
     }
+
+    // Validações de horas máximas por day
+    if(isNaN(max_hours_day)){
+      result.max_hours_day_NaN_error = 'O máximo de horas por semana deve ser um valor inteiro positivo';
+      console.log(result.max_hours_day_NaN_error);
+    } else if(max_hours_day < 0){
+      result.max_hours_day_negative_number_error = 'O máximo de horas por semana deve ser um valor positivo';
+      console.log(result.max_hours_day_negative_number_error);
+    } else if(max_hours_day >= max_hours_in_a_day){
+      result.day_limit_error = 'O máximo de horas por semana não pode ser maior ou igual a ' + max_hours_in_a_day;
+      console.log(result.day_limit_error);
+    }
+
+      // Validações de horas mínimas por semana
+      if(isNaN(min_hours_day)){
+        result.min_hours_day_NaN_error = 'O número mínimo de horas por dia deve ser um valor inteiro positivo';
+      } else if(min_hours_day < 0){
+        result.min_hours_day_negative_number_error = 'O número mínimo de horas por dia deve ser um valor positivo';
+        respond(null, {success:false, message: 'O mínimo de horas por dia deve ser um valor positivo'})
+      } else if(min_hours_day >= max_hours_in_a_day){
+        result.day_limit_error = 'O mínimo de horas por dia não pode ser maior ou igual a ' + max_hours_in_a_day;
+        console.log(result.day_limit_error);
+      }
 
     // Validações de horas mínimas por mês
     if(isNaN(min_hours_month)){
